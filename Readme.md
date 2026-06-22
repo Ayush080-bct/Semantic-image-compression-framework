@@ -1,6 +1,4 @@
-# not_text_processor
-
-Vision-side extraction module for the **Semantic Image Compression Framework**. This branch handles everything *except* OCR/text extraction — it's responsible for turning a raw image into structured semantic information using Florence-2.
+# Semantic Image Compression Framework
 
 ## What this does
 
@@ -17,6 +15,7 @@ Input Image
 ## Setup
 
 ### Requirements
+
 - Python 3.12
 - NVIDIA GPU with CUDA 12.1+ (CPU fallback supported but slow)
 - Conda
@@ -48,12 +47,13 @@ print(result["objects"])  # Bounding boxes + labels
 
 ## Florence-2 tasks used
 
-| Task | Purpose |
-|---|---|
-| `<DETAILED_CAPTION>` | Scene-level semantic description |
-| `<OD>` | Object detection (bounding boxes + labels) |
+| Task                 | Purpose                                    |
+| -------------------- | ------------------------------------------ |
+| `<DETAILED_CAPTION>` | Scene-level semantic description           |
+| `<OD>`               | Object detection (bounding boxes + labels) |
 
 ### Known limitations
+
 - `<OD>` is tuned for natural photos — performs weakly on diagrams, screenshots, and UI content. Consider `<DENSE_REGION_CAPTION>` or `<REGION_PROPOSAL>` for non-photographic inputs.
 - OCR task (`<OCR>`) is intentionally **not** used here — that responsibility belongs to the `text_processor` branch (EasyOCR).
 
@@ -69,6 +69,7 @@ print(result["objects"])  # Bounding boxes + labels
 This dict is passed downstream to the Semantic Mapper for merging with OCR output and conversion into the final XML schema.
 
 ## Next steps
+
 - [ ] Evaluate `<DENSE_REGION_CAPTION>` for diagram-heavy inputs
 - [ ] Benchmark inference latency (GPU vs CPU)
 - [ ] Define interface contract with Semantic Mapper module
