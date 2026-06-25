@@ -1,11 +1,7 @@
-from tkinter import *
-from tkinter import ttk
-from FrontEnd.my_gui import MyGui
-from PIL import Image, ImageTk
+from PySide6.QtWidgets import QApplication
+from FrontEnd.my_gui import MainWindow
 
-
-
-def runPipeline(imagePath):
+def run_Pipeline(imagePath):
 
     from Pipeline.Vision_Language_Model.florence_extractor import FlorenceExtractor
     from Pipeline.OCR_Model.easyocr_extractor import OCRExtractor
@@ -34,25 +30,8 @@ def runPipeline(imagePath):
     xml_output = build_xml(result)
     return xml_output
 
-def handle_print():
-    
-    imgOpen = Image.open(gui.imagePath.get())
-    imgOpen.thumbnail((350, 350))
-    image = ImageTk.PhotoImage(imgOpen)
-    
-    lbl = ttk.Label(gui.imageFrame,image=image)
-    lbl.image = image
-    lbl.grid()
+app = QApplication()
 
-    gui.root.update()
-
-    result = runPipeline(gui.imagePath.get())
-    return result
-
-
-gui = MyGui(Tk(),handle_print)
-
-
-
-
-gui.root.mainloop()
+window = MainWindow(run_Pipeline)
+window.mainWindow.show()
+app.exec()
