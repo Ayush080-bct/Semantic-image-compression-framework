@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QApplication , QMainWindow , QLabel , QVBoxLayout,QHBoxLayout , QWidget , QPushButton,QFileDialog,QScrollArea,QSizePolicy
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
+from concurrent.futures import ThreadPoolExecutor
 
 
 class MainWindow:
@@ -60,8 +61,9 @@ class MainWindow:
     
     def _execute(self):
         if self.fileName:
-            result = self.executeCallback(self.fileName)
-            self.outputContainer.setText(result)
+            future = ThreadPoolExecutor().submit(self.executeCallback , self.fileName)
+            future.add_done_callback(lambda f : self.outputContainer.setText(f.result()))
+            
             
         else:
             print('Select a image')
