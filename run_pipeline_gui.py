@@ -1,37 +1,36 @@
 from PySide6.QtWidgets import QApplication
 from FrontEnd.my_gui import MainWindow
+from Pipeline.Vision_Language_Model.florence_extractor import FlorenceExtractor
+from Pipeline.OCR_Model.easyocr_extractor import OCRExtractor
+from Pipeline.Image_Preprocessor.router import classify_image_type 
+from Pipeline.Semantic_Mapper.semantic_mapper import build_xml
+from PIL import Image
 
-def run_Pipeline(imagePath):
+class PipelineManager:
+    def __init__(self):
+        # Models are loaded into memory exactly once here
+        self.florence = FlorenceExtractor()
+        self.ocr = OCRExtractor()
 
-    from Pipeline.Vision_Language_Model.florence_extractor import FlorenceExtractor
-    from Pipeline.OCR_Model.easyocr_extractor import OCRExtractor
-    from Pipeline.Image_Preprocessor.router import classify_image_type 
-    from Pipeline.Semantic_Mapper.semantic_mapper import build_xml
-    from PIL import Image
+    def run(self, image_path):
+        ocr_results = self.ocr.extract(image_path)
+        image_type = classify_image_type(image_path, ocr_results)
+        image = Image.open(image_path).convert("RGB")
 
-    florence = FlorenceExtractor()
-    ocr = OCRExtractor()
+        result = {
+            "image_type": image_type,
+            "caption": self.florence.run_task(image, "<DETAILED_CAPTION>"),
+            "ocr": ocr_results,
+        }
 
-    image_path = imagePath  # change to test photo.jpg too
-    ocr_results = ocr.extract(image_path)
-    image_type = classify_image_type(image_path, ocr_results)
-    image = Image.open(image_path).convert("RGB")
+        if image_type == "photo":
+            result["objects"] = self.florence.run_task(image, "<OD>")
+            result["dense_regions"] = self.florence.run_task(image, "<DENSE_REGION_CAPTION>")
 
-    result = {
-        "image_type": image_type,
-        "caption": florence.run_task(image, "<DETAILED_CAPTION>"),
-        "ocr": ocr_results,
-    }
-
-    if image_type == "photo":
-        result["objects"] = florence.run_task(image, "<OD>")
-        result["dense_regions"] = florence.run_task(image, "<DENSE_REGION_CAPTION>")
-
-    xml_output = build_xml(result)
-    return xml_output
+        return build_xml(result)
 
 app = QApplication()
 
-window = MainWindow(run_Pipeline)
+window = MainWindow(PipelineManager().run)
 window.mainWindow.show()
 app.exec()
