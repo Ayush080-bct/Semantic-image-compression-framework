@@ -1,14 +1,22 @@
+import sys  
+
+if len(sys.argv) != 2: 
+    print('Provide a image')
+    sys.exit(1)
+
+
 from Pipeline.Vision_Language_Model.florence_extractor import FlorenceExtractor
 from Pipeline.OCR_Model.easyocr_extractor import OCRExtractor
 from Pipeline.Image_Preprocessor.router import classify_image_type 
 from Pipeline.Semantic_Mapper.semantic_mapper import build_xml
 from PIL import Image
 
-def main():
+
+def run_pipeline():
     florence = FlorenceExtractor()
     ocr = OCRExtractor()
 
-    image_path = "images.jpeg"  # change to test photo.jpg too
+    image_path = sys.argv[1]
     ocr_results = ocr.extract(image_path)
     image_type = classify_image_type(image_path, ocr_results)
     image = Image.open(image_path).convert("RGB")
@@ -27,4 +35,4 @@ def main():
     print(xml_output)
 
 if __name__ == '__main__':
-    main()
+    run_pipeline()
