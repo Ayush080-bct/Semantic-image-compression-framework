@@ -142,6 +142,9 @@ class MainWindow:
 
         self.statusIndicator.setText("Running")
 
+        for  index ,names in enumerate(self.fileNames):
+            self._update_img_container_status((index,None) , self.mainWindow.style().standardIcon(QStyle.SP_BrowserReload))
+
         workerThread = Worker()
         workerThread.signals.result.connect(
             lambda result: self.outputContainer.setText(" ".join(result))
