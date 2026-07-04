@@ -78,7 +78,7 @@ class MainWindow:
 
         self.outputArea = QScrollArea()
         self.outputArea.setWidgetResizable(True)
-        self.outputContainer = QLabel(text="Output area")
+        self.outputContainer = QLabel(text='')
         self.outputContainer.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.outputContainer.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse
@@ -94,13 +94,15 @@ class MainWindow:
         self.mainLayout.addWidget(self.imageContainer, 1)
 
     def pick_image(self):
-        self.fileNames, _ = QFileDialog.getOpenFileNames(
+        fileNames, _ = QFileDialog.getOpenFileNames(
             self.mainWindow,
             self.mainWindow.tr("Open Image"),
-            "/home/jana",
+            "",
             self.mainWindow.tr("Image Files (*.png *.jpg *.bmp *.jpeg)"),
         )
-        for name in self.fileNames:
+        for name in fileNames:
+            
+            self.fileNames.append(name)
 
             filteredName = re.search(r"[^/]+$", name)
 
@@ -138,30 +140,35 @@ class MainWindow:
 
     def _execute(self):
 
+        self.executeButton.setEnabled(False)
+        self.outputContainer.setText('')
         self.statusIndicator.setText("Running")
 
-        workerThread = Worker()
-        workerThread.signals.result.connect(
+        for  index ,names in enumerate(self.fileNames):
+            self._update_img_container_status((index,None) , self.mainWindow.style().standardIcon(QStyle.SP_BrowserReload))
+
+        self.workerThread = Worker()
+        self.workerThread.signals.result.connect(
             lambda result: self.outputContainer.setText(" ".join(result))
         )
-        workerThread.signals.progress.connect(
+        self.workerThread.signals.progress.connect(
             lambda result: self._update_img_container_status(
                 result,
                 self.mainWindow.style().standardIcon(QStyle.SP_MediaPlay),
             )
         )
-        workerThread.signals.complete.connect(
+        self.workerThread.signals.complete.connect(
             lambda result: self._update_img_container_status(
                 result,
                 self.mainWindow.style().standardIcon(QStyle.SP_DialogApplyButton),
             )
         )
-        workerThread.signals.finished.connect(
-            lambda result: self.statusIndicator.setText("Finished")
+        self.workerThread.signals.finished.connect(
+            lambda result: [self.statusIndicator.setText("Finished"),self.executeButton.setEnabled(True)]
         )
-        workerThread.submit_callback(self.process_images)
+        self.workerThread.submit_callback(self.process_images)
 
-        self.threadPool.start(workerThread)
+        self.threadPool.start(self.workerThread)
 
     def _update_img_container_status(self, data, icon):
         index, result = data
