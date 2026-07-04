@@ -140,8 +140,8 @@ class MainWindow:
 
     def _execute(self):
 
+        self.executeButton.setEnabled(False)
         self.outputContainer.setText('')
-
         self.statusIndicator.setText("Running")
 
         for  index ,names in enumerate(self.fileNames):
@@ -164,7 +164,7 @@ class MainWindow:
             )
         )
         self.workerThread.signals.finished.connect(
-            lambda result: self.statusIndicator.setText("Finished")
+            lambda result: [self.statusIndicator.setText("Finished"),self.executeButton.setEnabled(True)]
         )
         self.workerThread.submit_callback(self.process_images)
 
