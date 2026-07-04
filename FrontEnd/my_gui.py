@@ -78,7 +78,7 @@ class MainWindow:
 
         self.outputArea = QScrollArea()
         self.outputArea.setWidgetResizable(True)
-        self.outputContainer = QLabel(text="Output area")
+        self.outputContainer = QLabel(text='')
         self.outputContainer.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.outputContainer.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse
@@ -139,6 +139,8 @@ class MainWindow:
         return output
 
     def _execute(self):
+
+        self.outputContainer.setText('')
 
         self.statusIndicator.setText("Running")
 
