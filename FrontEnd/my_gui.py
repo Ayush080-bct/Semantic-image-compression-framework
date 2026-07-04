@@ -97,7 +97,7 @@ class MainWindow:
         fileNames, _ = QFileDialog.getOpenFileNames(
             self.mainWindow,
             self.mainWindow.tr("Open Image"),
-            "/home/jana",
+            "",
             self.mainWindow.tr("Image Files (*.png *.jpg *.bmp *.jpeg)"),
         )
         for name in fileNames:
