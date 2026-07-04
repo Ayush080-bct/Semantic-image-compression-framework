@@ -147,28 +147,28 @@ class MainWindow:
         for  index ,names in enumerate(self.fileNames):
             self._update_img_container_status((index,None) , self.mainWindow.style().standardIcon(QStyle.SP_BrowserReload))
 
-        workerThread = Worker()
-        workerThread.signals.result.connect(
+        self.workerThread = Worker()
+        self.workerThread.signals.result.connect(
             lambda result: self.outputContainer.setText(" ".join(result))
         )
-        workerThread.signals.progress.connect(
+        self.workerThread.signals.progress.connect(
             lambda result: self._update_img_container_status(
                 result,
                 self.mainWindow.style().standardIcon(QStyle.SP_MediaPlay),
             )
         )
-        workerThread.signals.complete.connect(
+        self.workerThread.signals.complete.connect(
             lambda result: self._update_img_container_status(
                 result,
                 self.mainWindow.style().standardIcon(QStyle.SP_DialogApplyButton),
             )
         )
-        workerThread.signals.finished.connect(
+        self.workerThread.signals.finished.connect(
             lambda result: self.statusIndicator.setText("Finished")
         )
-        workerThread.submit_callback(self.process_images)
+        self.workerThread.submit_callback(self.process_images)
 
-        self.threadPool.start(workerThread)
+        self.threadPool.start(self.workerThread)
 
     def _update_img_container_status(self, data, icon):
         index, result = data
