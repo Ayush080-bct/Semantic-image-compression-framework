@@ -94,13 +94,15 @@ class MainWindow:
         self.mainLayout.addWidget(self.imageContainer, 1)
 
     def pick_image(self):
-        self.fileNames, _ = QFileDialog.getOpenFileNames(
+        fileNames, _ = QFileDialog.getOpenFileNames(
             self.mainWindow,
             self.mainWindow.tr("Open Image"),
             "/home/jana",
             self.mainWindow.tr("Image Files (*.png *.jpg *.bmp *.jpeg)"),
         )
-        for name in self.fileNames:
+        for name in fileNames:
+            
+            self.fileNames.append(name)
 
             filteredName = re.search(r"[^/]+$", name)
 
