@@ -48,10 +48,10 @@ class MainWindow:
         self.executeCallback = executeCallback
         self.threadPool = QThreadPool()
         self.fileNames = []
-        self.masterPixmaps = []
 
         self.mainWindow = QMainWindow()
-        self.mainWindow.setWindowTitle("Title")
+        self.mainWindow.setWindowTitle("Semantic Image Compression Framework")
+
         self.mainContainer = QWidget()
         self.mainWindow.setCentralWidget(self.mainContainer)
         self.mainWindow.resize(1024, 768)
@@ -60,7 +60,7 @@ class MainWindow:
         self.controlContainer = QWidget()
         self.controlLayout = QVBoxLayout(self.controlContainer)
 
-        self.imageContainers = []
+        self.imageCards = []
         self.imageContainer = QScrollArea()
         self.imageContainer.setWidgetResizable(True)
         self.imageWidget = QWidget()
@@ -103,7 +103,6 @@ class MainWindow:
         for name in fileNames:
             
             self.fileNames.append(name)
-
             filteredName = re.search(r"[^/]+$", name)
 
             imgContainerCard = QWidget()
@@ -115,13 +114,14 @@ class MainWindow:
             )
             imgContainerStatus = QPushButton()
             imgContainerStatus.setFlat(True)
+
             imgContainerCardLayout.addWidget(imgContainer, 1)
             imgContainerCardLayout.addWidget(imgContainerStatus, 0)
 
-            self.imageContainers.append(imgContainerCard)
+            self.imageCards.append(imgContainerCard)
 
-        for imageContainer in self.imageContainers:
-            self.imageLayout.addWidget(imageContainer, 0)
+        for imageCard in self.imageCards:
+            self.imageLayout.addWidget(imageCard, 0)
 
     def process_images(self, signals):
         output = []
@@ -144,7 +144,7 @@ class MainWindow:
         self.outputContainer.setText('')
         self.statusIndicator.setText("Running")
 
-        for  index ,names in enumerate(self.fileNames):
+        for  index ,_ in enumerate(self.fileNames):
             self._update_img_container_status((index,None) , self.mainWindow.style().standardIcon(QStyle.SP_BrowserReload))
 
         self.workerThread = Worker()
@@ -172,5 +172,5 @@ class MainWindow:
 
     def _update_img_container_status(self, data, icon):
         index, result = data
-        target_button = self.imageContainers[index].findChild(QPushButton)
+        target_button = self.imageCards[index].findChild(QPushButton)
         target_button.setIcon(icon)
