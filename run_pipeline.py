@@ -9,9 +9,6 @@ class PipelineManager:
         from Pipeline.Image_Preprocessor.router import classify_image_type 
         from Pipeline.Semantic_Mapper.semantic_mapper import build_xml
       
-
-
-        # Models are loaded into memory exactly once here
         self.florence = FlorenceExtractor()
         self.ocr = OCRExtractor()
         self.classify_image_type = classify_image_type
