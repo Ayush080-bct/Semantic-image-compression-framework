@@ -74,6 +74,9 @@ class MainWindow:
         self.imagePickButton = QPushButton("Pick Image", self.controlContainer)
         self.imagePickButton.clicked.connect(self.pick_image)
 
+        self.clearButton = QPushButton('Clear')
+        self.clearButton.clicked.connect(self._clear_images)
+
         self.statusIndicator = QLabel(text="Not Running")
 
         self.outputArea = QScrollArea()
@@ -87,6 +90,7 @@ class MainWindow:
 
         self.controlLayout.addWidget(self.executeButton)
         self.controlLayout.addWidget(self.imagePickButton)
+        self.controlLayout.addWidget(self.clearButton)
         self.controlLayout.addWidget(self.outputArea)
         self.controlLayout.addWidget(self.statusIndicator)
 
@@ -174,3 +178,10 @@ class MainWindow:
         index, result = data
         target_button = self.imageCards[index].findChild(QPushButton)
         target_button.setIcon(icon)
+
+    def _clear_images(self):
+        self.fileNames.clear()
+        for imageCard in self.imageCards:
+            self.imageLayout.removeWidget(imageCard)
+            imageCard.hide()
+        self.imageCards.clear()
