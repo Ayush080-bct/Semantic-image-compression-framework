@@ -75,9 +75,9 @@ def build_xml(extraction_result: dict, ocr_confidence_threshold: float = 0.8) ->
 
 
 if __name__ == "__main__":
-    from florence_extractor import FlorenceExtractor
-    from easyocr_extractor import OCRExtractor
-    from router import classify_image_type
+    from ..Vision_Language_Model.florence_extractor import FlorenceExtractor
+    from ..OCR_Model.easyocr_extractor import OCRExtractor
+    from ..Image_Preprocessor.router import classify_image_type
     from PIL import Image
 
     florence = FlorenceExtractor()
