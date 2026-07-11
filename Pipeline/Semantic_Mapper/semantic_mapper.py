@@ -71,7 +71,7 @@ def build_xml(extraction_result: dict, ocr_confidence_threshold: float = 0.8) ->
     # Pretty-print
     rough_string = ET.tostring(root, encoding="unicode")
     reparsed = minidom.parseString(rough_string)
-    return reparsed.toprettyxml(indent="  ").replace('<?xml version="1.0" ?>\n', '')
+    return { 'XML Result' : reparsed.toprettyxml(indent="  ").replace('<?xml version="1.0" ?>\n', '')}
 
 
 if __name__ == "__main__":
