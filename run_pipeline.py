@@ -15,19 +15,15 @@ class PipelineManager:
         self.build_xml = build_xml
 
     def run(self, image_path):
-        ocr_results = self.ocr.extract(image_path)
-        image_type = self.classify_image_type(image_path, ocr_results)
-        image = Image.open(image_path).convert("RGB")
+        ocr_result = self.ocr.extract(image_path)
+        vlm_result = self.florence.extract(image_path)
+        image_type = self.classify_image_type(image_path, ocr_result['OCR Result'])
 
         result = {
             "image_type": image_type,
-            "caption": self.florence.run_task(image, "<DETAILED_CAPTION>"),
-            "ocr": ocr_results,
+            "VLM": vlm_result,
+            "OCR": ocr_result,
         }
-
-        if image_type == "photo":
-            result["objects"] = self.florence.run_task(image, "<OD>")
-            result["dense_regions"] = self.florence.run_task(image, "<DENSE_REGION_CAPTION>")
 
         return self.build_xml(result)
 

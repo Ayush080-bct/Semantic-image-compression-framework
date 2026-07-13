@@ -23,15 +23,62 @@ def build_xml(extraction_result: dict, ocr_confidence_threshold: float = 0.8) ->
     Takes the merged Florence-2 + EasyOCR extraction result and
     builds a compact XML document.
     """
+
+
     root = ET.Element("image_semantic", type=extraction_result["image_type"])
 
-    caption_text = extraction_result["caption"].get("<DETAILED_CAPTION>", "")
-    caption_el = ET.SubElement(root, "caption")
-    caption_el.text = caption_text
+    print(extraction_result["VLM"].get("VLM Result", {}))
 
-    if extraction_result["image_type"] == "document":
+    VLM_el = ET.SubElement(root, "VLM")
+    VLMCaption_el = ET.SubElement(VLM_el,'Caption')
+    VLMCaption_el.text = extraction_result["VLM"].get("VLM Result", {}).get('caption',{}).get('<DETAILED_CAPTION>','')
+
+    VLMObjects_el = ET.SubElement(VLM_el,'Objects')
+    VLMObjectDetection_el = ET.SubElement(VLMObjects_el,'ObjectDetection')
+
+    objectDetections = extraction_result["VLM"].get("VLM Result", {}).get('objects',{}).get('<OD>',{}).get('labels',[])
+    objectBoxes = extraction_result["VLM"].get("VLM Result", {}).get('objects',{}).get('<OD>',{}).get('bboxes',[])
+    
+    for index,obj in enumerate(objectDetections):
+        obj_el = ET.SubElement(VLMObjectDetection_el , 'object',bbox = format_bbox(objectBoxes[index]))
+        obj_el.text = obj
+
+
+    text_regions = ET.SubElement(root, "text_regions")
+    for det in extraction_result.get("OCR", []).get('OCR Result'):
+        text_el = ET.SubElement(
+            text_regions, "text",
+            bbox=format_bbox(det["bbox"]),
+            confidence=str(det["confidence"])
+        )
+        text_el.text = det["text"]
+
+    
+    dense_data = extraction_result.get("VLM", {}).get('VLM Result',{}).get("dense_regions", {}).get('<DENSE_REGION_CAPTION>',{})
+
+    #print(dense_data)
+
+    dense_bboxes = dense_data.get("bboxes", [])
+    dense_labels = dense_data.get("labels", [])
+
+    if dense_bboxes:
+        regions_el = ET.SubElement(root, "regions")
+        for bbox, label in zip(dense_bboxes, dense_labels):
+            region_el = ET.SubElement(
+                regions_el, "region",
+                bbox=format_bbox(bbox)
+            )
+            region_el.text = label
+
+    # Include high-confidence OCR hits even for photos
+
+    high_conf_text = [
+    det for det in extraction_result.get("OCR", {}).get('OCR Result',[])
+    if det["confidence"] >= ocr_confidence_threshold
+    ]
+    if high_conf_text:
         text_regions = ET.SubElement(root, "text_regions")
-        for det in extraction_result.get("ocr", []):
+        for det in high_conf_text:
             text_el = ET.SubElement(
                 text_regions, "text",
                 bbox=format_bbox(det["bbox"]),
@@ -39,39 +86,10 @@ def build_xml(extraction_result: dict, ocr_confidence_threshold: float = 0.8) ->
             )
             text_el.text = det["text"]
 
-    else:  # photo
-        dense_data = extraction_result.get("dense_regions", {}).get("<DENSE_REGION_CAPTION>", {})
-        dense_bboxes = dense_data.get("bboxes", [])
-        dense_labels = dense_data.get("labels", [])
-
-        if dense_bboxes:
-            regions_el = ET.SubElement(root, "regions")
-            for bbox, label in zip(dense_bboxes, dense_labels):
-                region_el = ET.SubElement(
-                    regions_el, "region",
-                    bbox=format_bbox(bbox)
-                )
-                region_el.text = label
-
-        # Include high-confidence OCR hits even for photos
-        high_conf_text = [
-        det for det in extraction_result.get("ocr", [])
-        if det["confidence"] >= ocr_confidence_threshold
-        ]
-        if high_conf_text:
-            text_regions = ET.SubElement(root, "text_regions")
-            for det in high_conf_text:
-                text_el = ET.SubElement(
-                    text_regions, "text",
-                    bbox=format_bbox(det["bbox"]),
-                    confidence=str(det["confidence"])
-                )
-                text_el.text = det["text"]
-
     # Pretty-print
-    rough_string = ET.tostring(root, encoding="unicode")
-    reparsed = minidom.parseString(rough_string)
-    return { 'XML Result' : reparsed.toprettyxml(indent="  ").replace('<?xml version="1.0" ?>\n', '')}
+    rough_bytes = ET.tostring(root, encoding="utf-8", xml_declaration=False)
+    reparsed = minidom.parseString(rough_bytes)
+    return  reparsed.toprettyxml(indent="  ").replace('<?xml version="1.0" ?>\n', '')
 
 
 if __name__ == "__main__":
