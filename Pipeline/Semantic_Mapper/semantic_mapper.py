@@ -34,15 +34,23 @@ def build_xml(extraction_result: dict, ocr_confidence_threshold: float = 0.8) ->
     VLMCaption_el.text = extraction_result["VLM"].get("VLM Result", {}).get('caption',{}).get('<DETAILED_CAPTION>','')
 
     VLMObjects_el = ET.SubElement(VLM_el,'Objects')
-    VLMObjectDetection_el = ET.SubElement(VLMObjects_el,'ObjectDetection')
 
     objectDetections = extraction_result["VLM"].get("VLM Result", {}).get('objects',{}).get('<OD>',{}).get('labels',[])
     objectBoxes = extraction_result["VLM"].get("VLM Result", {}).get('objects',{}).get('<OD>',{}).get('bboxes',[])
     
     for index,obj in enumerate(objectDetections):
-        obj_el = ET.SubElement(VLMObjectDetection_el , 'object',bbox = format_bbox(objectBoxes[index]))
+        obj_el = ET.SubElement(VLMObjects_el , 'object',bbox = format_bbox(objectBoxes[index]))
         obj_el.text = obj
 
+
+    VLMDenseRegions_el=ET.SubElement(VLM_el,'DenseRegion')
+    
+    denseRegionDetections=extraction_result["VLM"].get("VLM Result", {}).get('dense_regions',{}).get('<DENSE_REGION_CAPTION>',{}).get('labels',[])
+    denseRegionBoxes=extraction_result["VLM"].get("VLM Result", {}).get('dense_regions',{}).get('<DENSE_REGION_CAPTION>',{}).get('bboxes',[])
+
+    for index,region in enumerate(denseRegionDetections):
+        region_el=ET.SubElement(VLMDenseRegions_el,'denseRegion',bbox=format_bbox(denseRegionBoxes[index]))
+        region_el.text=region
 
     text_regions = ET.SubElement(root, "text_regions")
     for det in extraction_result.get("OCR", []).get('OCR Result'):
