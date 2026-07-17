@@ -34,17 +34,17 @@ class FlorenceExtractor:
 
     def extract(self, image_path: str) -> dict:
         image = Image.open(image_path).convert("RGB")
-        return {
+        return  { 'VLM Result': {
             "caption": self.run_task(image, "<DETAILED_CAPTION>"),
             "objects": self.run_task(image, "<OD>"),
             "dense_regions": self.run_task(image, "<DENSE_REGION_CAPTION>"),
             "ocr": self.run_task(image, "<OCR>"),
-        }
+        }}
 
 
 if __name__ == "__main__":
     extractor = FlorenceExtractor()
-    result = extractor.extract("test.png")
+    result = extractor.extract("/home/liquid/Documents/Semantic-image-compression-framework/images.jpeg")
     for key, value in result.items():
         print(f"\n--- {key.upper()} ---")
         print(value)

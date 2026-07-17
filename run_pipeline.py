@@ -6,30 +6,26 @@ class PipelineManager:
 
         from Pipeline.Vision_Language_Model.florence_extractor import FlorenceExtractor
         from Pipeline.OCR_Model.easyocr_extractor import OCRExtractor
-        from Pipeline.Image_Preprocessor.router import classify_image_type 
-        from Pipeline.Semantic_Mapper.semantic_mapper import build_xml
+        from Pipeline.Image_Preprocessor.image_preprocessor import ImagePreprocessor
+        from Pipeline.Semantic_Mapper.semantic_mapper import SemanticMapper
       
         self.florence = FlorenceExtractor()
         self.ocr = OCRExtractor()
-        self.classify_image_type = classify_image_type
-        self.build_xml = build_xml
+        self.imagePreprocessor =ImagePreprocessor()
+        self.semanticMapper = SemanticMapper()
 
     def run(self, image_path):
-        ocr_results = self.ocr.extract(image_path)
-        image_type = self.classify_image_type(image_path, ocr_results)
-        image = Image.open(image_path).convert("RGB")
+        ocr_result = self.ocr.extract(image_path)
+        vlm_result = self.florence.extract(image_path)
+        image_type = self.imagePreprocessor.classify_image_type(image_path, ocr_result['OCR Result'])
 
         result = {
             "image_type": image_type,
-            "caption": self.florence.run_task(image, "<DETAILED_CAPTION>"),
-            "ocr": ocr_results,
+            "VLM": vlm_result,
+            "OCR": ocr_result,
         }
 
-        if image_type == "photo":
-            result["objects"] = self.florence.run_task(image, "<OD>")
-            result["dense_regions"] = self.florence.run_task(image, "<DENSE_REGION_CAPTION>")
-
-        return self.build_xml(result)
+        return self.semanticMapper.build_xml(result)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2: 
