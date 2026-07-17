@@ -25,78 +25,78 @@ def build_xml(extraction_result: dict, ocr_confidence_threshold: float = 0.8) ->
     """
 
 
-    root = ET.Element("image_semantic", type=extraction_result["image_type"])
+    root = ET.Element("ImageSemantic", type=extraction_result["image_type"])
 
     print(extraction_result["VLM"].get("VLM Result", {}))
 
-    VLM_el = ET.SubElement(root, "VLM")
-    VLMCaption_el = ET.SubElement(VLM_el,'Caption')
-    VLMCaption_el.text = extraction_result["VLM"].get("VLM Result", {}).get('caption',{}).get('<DETAILED_CAPTION>','')
+    vlmEl = ET.SubElement(root, "VLM")
+    vlmCaptionEl = ET.SubElement(vlmEl,'Caption')
+    vlmCaptionEl.text = extraction_result["VLM"].get("VLM Result", {}).get('caption',{}).get('<DETAILED_CAPTION>','')
 
-    VLMObjects_el = ET.SubElement(VLM_el,'Objects')
+    vlmObjectsEl = ET.SubElement(vlmEl,'Objects')
 
     objectDetections = extraction_result["VLM"].get("VLM Result", {}).get('objects',{}).get('<OD>',{}).get('labels',[])
     objectBoxes = extraction_result["VLM"].get("VLM Result", {}).get('objects',{}).get('<OD>',{}).get('bboxes',[])
     
     for index,obj in enumerate(objectDetections):
-        obj_el = ET.SubElement(VLMObjects_el , 'object',bbox = format_bbox(objectBoxes[index]))
-        obj_el.text = obj
+        objEl = ET.SubElement(vlmObjectsEl , 'object',bbox = format_bbox(objectBoxes[index]))
+        objEl.text = obj
 
 
-    VLMDenseRegions_el=ET.SubElement(VLM_el,'DenseRegion')
+    vlmDenseRegionsEl=ET.SubElement(vlmEl,'DenseRegions')
     
     denseRegionDetections=extraction_result["VLM"].get("VLM Result", {}).get('dense_regions',{}).get('<DENSE_REGION_CAPTION>',{}).get('labels',[])
     denseRegionBoxes=extraction_result["VLM"].get("VLM Result", {}).get('dense_regions',{}).get('<DENSE_REGION_CAPTION>',{}).get('bboxes',[])
 
     for index,region in enumerate(denseRegionDetections):
-        region_el=ET.SubElement(VLMDenseRegions_el,'denseRegion',bbox=format_bbox(denseRegionBoxes[index]))
-        region_el.text=region
+        regionEl=ET.SubElement(vlmDenseRegionsEl,'DenseRegion',bbox=format_bbox(denseRegionBoxes[index]))
+        regionEl.text=region
 
-    text_regions = ET.SubElement(root, "text_regions")
+    ocrTextRegionsEl = ET.SubElement(root, "TextRegions")
     for det in extraction_result.get("OCR", []).get('OCR Result'):
         text_el = ET.SubElement(
-            text_regions, "text",
+            ocrTextRegionsEl, "text",
             bbox=format_bbox(det["bbox"]),
             confidence=str(det["confidence"])
         )
         text_el.text = det["text"]
 
     
-    dense_data = extraction_result.get("VLM", {}).get('VLM Result',{}).get("dense_regions", {}).get('<DENSE_REGION_CAPTION>',{})
+    denseData = extraction_result.get("VLM", {}).get('VLM Result',{}).get("dense_regions", {}).get('<DENSE_REGION_CAPTION>',{})
 
-    #print(dense_data)
+    #print(denseData)
 
-    dense_bboxes = dense_data.get("bboxes", [])
-    dense_labels = dense_data.get("labels", [])
+    denseBboxes = denseData.get("bboxes", [])
+    denseLabels = denseData.get("labels", [])
 
-    if dense_bboxes:
-        regions_el = ET.SubElement(root, "regions")
-        for bbox, label in zip(dense_bboxes, dense_labels):
-            region_el = ET.SubElement(
-                regions_el, "region",
+    if denseBboxes:
+        regionsEl = ET.SubElement(root, "Regions")
+        for bbox, label in zip(denseBboxes, denseLabels):
+            regionEl = ET.SubElement(
+                regionsEl, "Region",
                 bbox=format_bbox(bbox)
             )
-            region_el.text = label
+            regionEl.text = label
 
     # Include high-confidence OCR hits even for photos
 
-    high_conf_text = [
+    highConfText = [
     det for det in extraction_result.get("OCR", {}).get('OCR Result',[])
     if det["confidence"] >= ocr_confidence_threshold
     ]
-    if high_conf_text:
-        text_regions = ET.SubElement(root, "text_regions")
-        for det in high_conf_text:
-            text_el = ET.SubElement(
-                text_regions, "text",
+    if highConfText:
+        textRegionsEl = ET.SubElement(root, "textRegions")
+        for det in highConfText:
+            textEl = ET.SubElement(
+                textRegionsEl, "text",
                 bbox=format_bbox(det["bbox"]),
                 confidence=str(det["confidence"])
             )
-            text_el.text = det["text"]
+            textEl.text = det["text"]
 
     # Pretty-print
-    rough_bytes = ET.tostring(root, encoding="utf-8", xml_declaration=False)
-    reparsed = minidom.parseString(rough_bytes)
+    roughBytes = ET.tostring(root, encoding="utf-8", xml_declaration=False)
+    reparsed = minidom.parseString(roughBytes)
     return  reparsed.toprettyxml(indent="  ").replace('<?xml version="1.0" ?>\n', '')
 
 
