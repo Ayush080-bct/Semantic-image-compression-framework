@@ -7,12 +7,12 @@ class PipelineManager:
         from Pipeline.Vision_Language_Model.florence_extractor import FlorenceExtractor
         from Pipeline.OCR_Model.easyocr_extractor import OCRExtractor
         from Pipeline.Image_Preprocessor.image_preprocessor import ImagePreprocessor
-        from Pipeline.Semantic_Mapper.semantic_mapper import build_xml
+        from Pipeline.Semantic_Mapper.semantic_mapper import SemanticMapper
       
         self.florence = FlorenceExtractor()
         self.ocr = OCRExtractor()
         self.imagePreprocessor =ImagePreprocessor()
-        self.build_xml = build_xml
+        self.semanticMapper = SemanticMapper()
 
     def run(self, image_path):
         ocr_result = self.ocr.extract(image_path)
@@ -25,7 +25,7 @@ class PipelineManager:
             "OCR": ocr_result,
         }
 
-        return self.build_xml(result)
+        return self.semanticMapper.build_xml(result)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2: 
