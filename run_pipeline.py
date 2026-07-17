@@ -6,18 +6,18 @@ class PipelineManager:
 
         from Pipeline.Vision_Language_Model.florence_extractor import FlorenceExtractor
         from Pipeline.OCR_Model.easyocr_extractor import OCRExtractor
-        from Pipeline.Image_Preprocessor.router import classify_image_type 
+        from Pipeline.Image_Preprocessor.image_preprocessor import ImagePreprocessor
         from Pipeline.Semantic_Mapper.semantic_mapper import build_xml
       
         self.florence = FlorenceExtractor()
         self.ocr = OCRExtractor()
-        self.classify_image_type = classify_image_type
+        self.imagePreprocessor =ImagePreprocessor()
         self.build_xml = build_xml
 
     def run(self, image_path):
         ocr_result = self.ocr.extract(image_path)
         vlm_result = self.florence.extract(image_path)
-        image_type = self.classify_image_type(image_path, ocr_result['OCR Result'])
+        image_type = self.imagePreprocessor.classify_image_type(image_path, ocr_result['OCR Result'])
 
         result = {
             "image_type": image_type,
