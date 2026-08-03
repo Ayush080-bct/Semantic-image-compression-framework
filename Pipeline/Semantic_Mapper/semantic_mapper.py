@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 class SemanticMapper:
-    def format_bbox(self , bbox) -> str:
+    def format_bbox(bbox) -> str:
         """
         Normalizes different bbox formats into 'x1,y1,x2,y2' string.
         Handles both Florence-2 style [x1,y1,x2,y2] and EasyOCR style
