@@ -34,12 +34,12 @@ def token_count(value: str) -> int | None:
 
 def parse_result(xml_text: str) -> dict:
     root = ET.fromstring(xml_text)
-    text_nodes = root.findall("./text_regions/text")
-    region_nodes = root.findall("./regions/region")
+    text_nodes = root.findall("./OCR/text") + root.findall("./textRegions/text")
+    region_nodes = root.findall("./VLM/DenseRegions/DenseRegion")
     confidences = confidence_values(text_nodes)
     return {
         "image_type": root.attrib.get("type", "unknown"),
-        "caption": root.findtext("caption", default=""),
+        "caption": root.findtext("./VLM/Caption", default=""),
         "text_nodes": text_nodes,
         "region_nodes": region_nodes,
         "mean_confidence": sum(confidences) / len(confidences) if confidences else 0.0,
