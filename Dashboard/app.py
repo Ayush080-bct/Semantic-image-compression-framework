@@ -17,12 +17,24 @@ def format_bytes(value: int) -> str:
     return f"{value:,}"
 
 
+def build_measurement_rows(result: dict, xml_text: str, parsed: dict) -> list[dict[str, str]]:
+    xml_tokens = token_count(xml_text)
+    image_base64_tokens = token_count(result["image_bytes"].hex())
+    xml_size = len(xml_text.encode("utf-8"))
+    image_size = max(1, len(result["image_bytes"]))
+    return [
+        {"Metric": "XML / image bytes", "Value": f"{xml_size / image_size:.4f}", "Interpretation": "Storage-size proxy"},
+        {"Metric": "XML character count", "Value": format_bytes(len(xml_text)), "Interpretation": "Representation-size measure"},
+        {"Metric": "XML tokens", "Value": str(xml_tokens) if xml_tokens is not None else "Unavailable", "Interpretation": "cl100k_base estimate"},
+        {"Metric": "Image payload tokens", "Value": str(image_base64_tokens) if image_base64_tokens is not None else "Unavailable", "Interpretation": "Hex payload proxy, not multimodal billing"},
+        {"Metric": "Dense regions", "Value": str(len(parsed["region_nodes"])), "Interpretation": "Florence region count"},
+    ]
+
+
 def render_result(result: dict) -> None:
     parsed = result["parsed"]
     image = Image.open(io.BytesIO(result["image_bytes"])).convert("RGB")
     xml_text = result["xml"]
-    xml_tokens = token_count(xml_text)
-    image_base64_tokens = token_count(result["image_bytes"].hex())
 
     st.divider()
     st.subheader(result["image_name"])
@@ -46,14 +58,7 @@ def render_result(result: dict) -> None:
     st.download_button("Download XML", xml_text, file_name=f"{Path(result['image_name']).stem}.xml", mime="application/xml")
 
     st.subheader("Observed measurements")
-    measurement_rows = [
-        {"Metric": "XML / image bytes", "Value": f"{len(xml_text.encode('utf-8')) / max(1, len(result['image_bytes'])):.4f}", "Interpretation": "Storage-size proxy"},
-        {"Metric": "XML character count", "Value": f"{len(xml_text):,}", "Interpretation": "Representation-size measure"},
-        {"Metric": "XML tokens", "Value": str(xml_tokens) if xml_tokens is not None else "Unavailable", "Interpretation": "cl100k_base estimate"},
-        {"Metric": "Image payload tokens", "Value": str(image_base64_tokens) if image_base64_tokens is not None else "Unavailable", "Interpretation": "Hex payload proxy, not multimodal billing"},
-        {"Metric": "Dense regions", "Value": str(len(parsed["region_nodes"])), "Interpretation": "Florence region count"},
-    ]
-    st.table(measurement_rows)
+    st.table(build_measurement_rows(result, xml_text, parsed))
 
     if parsed["text_nodes"]:
         st.subheader("OCR extraction")
