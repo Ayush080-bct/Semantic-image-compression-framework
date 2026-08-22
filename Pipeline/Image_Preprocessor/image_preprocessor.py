@@ -25,7 +25,7 @@ class ImagePreprocessor:
         return text_area / img_area
 
 
-    def classify_image_type(self,image_path: str, ocr_detections: list, threshold: float = 0.03) -> str:
+    def classify_image_type(self,image_path: str, ocr_detections: list, threshold: float = 0.8) -> str:
         """
         Returns 'document' if text coverage exceeds threshold, else 'photo'.
         threshold=0.03 means: if >3% of image area is text, treat as document/diagram.

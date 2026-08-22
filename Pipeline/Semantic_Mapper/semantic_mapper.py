@@ -2,7 +2,7 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 class SemanticMapper:
-    def format_bbox(bbox) -> str:
+    def format_bbox(self , bbox) -> str:
         """
         Normalizes different bbox formats into 'x1,y1,x2,y2' string.
         Handles both Florence-2 style [x1,y1,x2,y2] and EasyOCR style
@@ -34,8 +34,6 @@ class SemanticMapper:
             .get("<DETAILED_CAPTION>", "")
         )
 
-        vlmObjectsEl = ET.SubElement(vlmEl, "Objects")
-
         objectDetections = (
             extraction_result["VLM"]
             .get("VLM Result", {})
@@ -50,14 +48,14 @@ class SemanticMapper:
             .get("<OD>", {})
             .get("bboxes", [])
         )
+        if objectDetections:
+            vlmObjectsEl = ET.SubElement(vlmEl, "Objects")
 
-        for index, obj in enumerate(objectDetections):
-            objEl = ET.SubElement(
-                vlmObjectsEl, "object", bbox=self.format_bbox(objectBoxes[index])
-            )
-            objEl.text = obj
-
-        vlmDenseRegionsEl = ET.SubElement(vlmEl, "DenseRegions")
+            for index, obj in enumerate(objectDetections):
+                objEl = ET.SubElement(
+                    vlmObjectsEl, "object", bbox=self.format_bbox(objectBoxes[index])
+                )
+                objEl.text = obj
 
         denseRegionDetections = (
             extraction_result["VLM"]
@@ -74,39 +72,28 @@ class SemanticMapper:
             .get("bboxes", [])
         )
 
-        for index, region in enumerate(denseRegionDetections):
-            regionEl = ET.SubElement(
-                vlmDenseRegionsEl, "DenseRegion", bbox=self.format_bbox(denseRegionBoxes[index])
-            )
-            regionEl.text = region
+        if denseRegionDetections:
+            vlmDenseRegionsEl = ET.SubElement(vlmEl, "DenseRegions")
+
+            for index, region in enumerate(denseRegionDetections):
+                regionEl = ET.SubElement(
+                    vlmDenseRegionsEl, "DenseRegion", bbox=self.format_bbox(denseRegionBoxes[index])
+                )
+                regionEl.text = region
 
         ocrTextRegionsEl = ET.SubElement(root, "OCR")
-        for det in extraction_result.get("OCR", []).get("OCR Result"):
+        for det in extraction_result.get("OCR", {}).get("OCR Result", []):
+            quality = "high" if det["confidence"] >= 0.8 else "low"
             text_el = ET.SubElement(
                 ocrTextRegionsEl,
                 "text",
                 bbox=self.format_bbox(det["bbox"]),
                 confidence=str(det["confidence"]),
+                quality=quality
             )
             text_el.text = det["text"]
 
         # Include high-confidence OCR hits even for photos
-
-        highConfText = [
-            det
-            for det in extraction_result.get("OCR", {}).get("OCR Result", [])
-            if det["confidence"] >= ocr_confidence_threshold
-        ]
-        if highConfText:
-            textRegionsEl = ET.SubElement(root, "textRegions")
-            for det in highConfText:
-                textEl = ET.SubElement(
-                    textRegionsEl,
-                    "text",
-                    bbox=self.format_bbox(det["bbox"]),
-                    confidence=str(det["confidence"]),
-                )
-                textEl.text = det["text"]
 
         # Pretty-print
         roughBytes = ET.tostring(root, encoding="utf-8", xml_declaration=False)
