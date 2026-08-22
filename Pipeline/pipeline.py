@@ -7,10 +7,10 @@ using Florence-2 (vision) + EasyOCR (text), routed by content type.
 
 import argparse
 from PIL import Image
-from Image_Preprocessor.router import classify_image_type
-from OCR_Model.easyocr_extractor import OCRExtractor
-from Vision_Language_Model.florence_extractor import FlorenceExtractor
-from Semantic_Mapper.semantic_mapper import build_xml
+from Pipeline.Image_Preprocessor.image_preprocessor import ImagePreprocessor
+from Pipeline.OCR_Model.easyocr_extractor import OCRExtractor
+from Pipeline.Vision_Language_Model.florence_extractor import FlorenceExtractor
+from Pipeline.Semantic_Mapper.semantic_mapper import SemanticMapper
 
 
 class SemanticImagePipeline:
@@ -23,6 +23,8 @@ class SemanticImagePipeline:
     def __init__(self, ocr_confidence_threshold: float = 0.8, document_threshold: float = 0.03):
         self.florence = FlorenceExtractor()
         self.ocr = OCRExtractor()
+        self.preprocessor = ImagePreprocessor()
+        self.mapper = SemanticMapper()
         self.ocr_confidence_threshold = ocr_confidence_threshold
         self.document_threshold = document_threshold
 
@@ -31,8 +33,8 @@ class SemanticImagePipeline:
         Runs the full pipeline on a single image and returns the XML string.
         """
         ocr_results = self.ocr.extract(image_path)
-        image_type = classify_image_type(
-            image_path, ocr_results, threshold=self.document_threshold
+        image_type = self.preprocessor.classify_image_type(
+            image_path, ocr_results["OCR Result"], threshold=self.document_threshold
         )
         image = Image.open(image_path).convert("RGB")
 
@@ -45,7 +47,9 @@ class SemanticImagePipeline:
         if image_type == "photo":
             result["dense_regions"] = self.florence.run_task(image, "<DENSE_REGION_CAPTION>")
 
-        return build_xml(result, ocr_confidence_threshold=self.ocr_confidence_threshold)
+        return self.mapper.build_xml(
+            result, ocr_confidence_threshold=self.ocr_confidence_threshold
+        )
 
 
 def main():
