@@ -6,7 +6,6 @@ using Florence-2 (vision) + EasyOCR (text), routed by content type.
 """
 
 import argparse
-from PIL import Image
 from Pipeline.Image_Preprocessor.image_preprocessor import ImagePreprocessor
 from Pipeline.OCR_Model.easyocr_extractor import OCRExtractor
 from Pipeline.Vision_Language_Model.florence_extractor import FlorenceExtractor
@@ -36,16 +35,12 @@ class SemanticImagePipeline:
         image_type = self.preprocessor.classify_image_type(
             image_path, ocr_results["OCR Result"], threshold=self.document_threshold
         )
-        image = Image.open(image_path).convert("RGB")
-
+        vlm_results = self.florence.extract(image_path)
         result = {
             "image_type": image_type,
-            "caption": self.florence.run_task(image, "<DETAILED_CAPTION>"),
-            "ocr": ocr_results,
+            "VLM": vlm_results,
+            "OCR": ocr_results,
         }
-
-        if image_type == "photo":
-            result["dense_regions"] = self.florence.run_task(image, "<DENSE_REGION_CAPTION>")
 
         return self.mapper.build_xml(
             result, ocr_confidence_threshold=self.ocr_confidence_threshold
