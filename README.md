@@ -101,6 +101,16 @@ conda env export --no-builds | grep -v "^prefix: " > environment.yml
 conda env update -n minpro --file environment.yml --prune
 ```
 
+## Streamlit Dashboard
+
+Run the report dashboard from the repository root:
+
+```bash
+streamlit run Dashboard/streamlit_app.py
+```
+
+Upload an image to inspect the route, OCR boxes, Florence caption, generated XML, processing time, and representation-size measurements. XML byte and token values are proxies for semantic representation size; they do not by themselves establish semantic fidelity or downstream LLM cost savings.
+
 ---
 
 ## Core Modules
