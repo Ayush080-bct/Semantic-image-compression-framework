@@ -1,8 +1,9 @@
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
+
 class SemanticMapper:
-    def format_bbox(bbox) -> str:
+    def format_bbox(self, bbox) -> str:
         """
         Normalizes different bbox formats into 'x1,y1,x2,y2' string.
         Handles both Florence-2 style [x1,y1,x2,y2] and EasyOCR style
@@ -17,7 +18,9 @@ class SemanticMapper:
 
         return f"{round(x1)},{round(y1)},{round(x2)},{round(y2)}"
 
-    def build_xml(self,extraction_result: dict, ocr_confidence_threshold: float = 0.8) -> str:
+    def build_xml(
+        self, extraction_result: dict, ocr_confidence_threshold: float = 0.8
+    ) -> str:
         """
         Takes the merged Florence-2 + EasyOCR extraction result and
         builds a compact XML document.
@@ -76,7 +79,9 @@ class SemanticMapper:
 
         for index, region in enumerate(denseRegionDetections):
             regionEl = ET.SubElement(
-                vlmDenseRegionsEl, "DenseRegion", bbox=self.format_bbox(denseRegionBoxes[index])
+                vlmDenseRegionsEl,
+                "DenseRegion",
+                bbox=self.format_bbox(denseRegionBoxes[index]),
             )
             regionEl.text = region
 
@@ -115,15 +120,16 @@ class SemanticMapper:
 
 
 if __name__ == "__main__":
-    from ..Vision_Language_Model.florence_extractor import FlorenceExtractor
-    from ..OCR_Model.easyocr_extractor import OCRExtractor
-    from ..Image_Preprocessor.image_preprocessor import ImagePreprocessor
     from PIL import Image
+
+    from ..Image_Preprocessor.image_preprocessor import ImagePreprocessor
+    from ..OCR_Model.easyocr_extractor import OCRExtractor
+    from ..Vision_Language_Model.florence_extractor import FlorenceExtractor
 
     florence = FlorenceExtractor()
     ocr = OCRExtractor()
-    imgPreprocessor=ImagePreprocessor()
-    semanticMapper=SemanticMapper()
+    imgPreprocessor = ImagePreprocessor()
+    semanticMapper = SemanticMapper()
 
     image_path = "image.png"  # change to test photo.jpg too
     ocr_results = ocr.extract(image_path)
