@@ -7,11 +7,10 @@ using Florence-2 (vision) + EasyOCR (text), routed by content type.
 
 import argparse
 from PIL import Image
-
-from florence_extractor import FlorenceExtractor
-from easyocr_extractor import OCRExtractor
-from router import classify_image_type
-from semantic_mapper import build_xml
+from Image_Preprocessor.router import classify_image_type
+from OCR_Model.easyocr_extractor import OCRExtractor
+from Vision_Language_Model.florence_extractor import FlorenceExtractor
+from Semantic_Mapper.semantic_mapper import build_xml
 
 
 class SemanticImagePipeline:
